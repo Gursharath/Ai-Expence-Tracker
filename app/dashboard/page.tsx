@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import {
@@ -9,7 +9,8 @@ import {
     ArrowDownRight,
     Wallet,
     Sparkles,
-    ArrowRight
+    ArrowRight,
+    Loader2
 } from "lucide-react"
 
 import { useAuth } from "@/components/providers/auth-provider"
@@ -24,17 +25,30 @@ import AICopilotCard from "@/components/dashboard/ai-copilot-card"
 
 import { useDashboard } from "@/components/providers/dashboard-provider"
 import { getCategoryData, getMonthlyData } from "@/utils/analytics"
+import { getLatestDailyBrief } from "@/app/actions/agents"
 
 export default function DashboardPage() {
     const { user, loading: authLoading } = useAuth()
     const router = useRouter()
     const { expenses, loading: dashboardLoading, loadExpenses } = useDashboard()
+    const [brief, setBrief] = useState<any>(null)
+    const [briefLoading, setBriefLoading] = useState(false)
 
     useEffect(() => {
         if (!authLoading && !user) {
             router.push("/login")
         }
     }, [user, authLoading, router])
+
+    useEffect(() => {
+        if (user) {
+            setBriefLoading(true)
+            getLatestDailyBrief()
+                .then(data => setBrief(data))
+                .catch(err => console.error("Error loading brief:", err))
+                .finally(() => setBriefLoading(false))
+        }
+    }, [user])
 
     if (authLoading || dashboardLoading) {
         return (
@@ -49,6 +63,7 @@ export default function DashboardPage() {
     }
 
     if (!user) return null
+
 
     const totalIncome = expenses
         .filter((e) => e.type === "income")
@@ -113,6 +128,40 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </FadeIn>
+
+                {/* DAILY BRIEFING */}
+                {briefLoading ? (
+                    <FadeIn delay={0.02}>
+                        <div className="glass-card p-6 border-amber-500/10 bg-gradient-to-br from-amber-500/5 to-transparent flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <Loader2 className="animate-spin text-amber-400 w-5 h-5" />
+                                <span className="text-zinc-400 text-sm">Consulting agents for your Daily Briefing...</span>
+                            </div>
+                        </div>
+                    </FadeIn>
+                ) : brief ? (
+                    <FadeIn delay={0.02}>
+                        <div className="glass-card p-6 border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent relative overflow-hidden">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/5 rounded-full blur-2xl" />
+                            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="space-y-1">
+                                    <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2 uppercase tracking-wider">
+                                        <Sparkles size={13} className="animate-pulse" />
+                                        Latest Daily Financial Brief
+                                    </h3>
+                                    <p className="text-zinc-300 text-sm leading-relaxed max-w-4xl">{brief.summary}</p>
+                                </div>
+                                <Link 
+                                    href="/dashboard/ai-agents" 
+                                    className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-xs font-bold text-amber-300 hover:text-amber-200 transition-all self-start md:self-center"
+                                >
+                                    Open Agent Workspace
+                                    <ArrowRight size={13} />
+                                </Link>
+                            </div>
+                        </div>
+                    </FadeIn>
+                ) : null}
 
                 {/* AI COPILOT */}
                 <FadeIn delay={0.05}>

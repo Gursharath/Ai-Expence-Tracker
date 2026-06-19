@@ -13,6 +13,8 @@ import {
     Menu,
     X,
     Sparkles,
+    Cpu,
+    Database,
 } from "lucide-react"
 
 import { useAuth } from "@/components/providers/auth-provider"
@@ -29,8 +31,11 @@ export default function Sidebar() {
         { name: "Analytics", href: "/dashboard/analytics", icon: LineChart },
         { name: "Budgets & Goals", href: "/dashboard/budgets", icon: Target },
         { name: "AI Assistant", href: "/dashboard/ai", icon: Bot },
+        { name: "AI Agent Workspace", href: "/dashboard/ai-agents", icon: Cpu },
+        { name: "Agent Operations", href: "/dashboard/agents", icon: Database },
         { name: "Receipt Scanner", href: "/dashboard/scanner", icon: Camera },
     ]
+
 
     const toggleSidebar = () => setIsOpen(!isOpen)
     const closeSidebar = () => setIsOpen(false)
